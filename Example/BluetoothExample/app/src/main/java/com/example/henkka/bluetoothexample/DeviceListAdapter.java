@@ -15,6 +15,7 @@ public class DeviceListAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
     private List<BluetoothDevice> mBtDeviceData;
+    private OnPairButtonListener listener = null;
 
 
     public DeviceListAdapter(Context context) {
@@ -23,6 +24,10 @@ public class DeviceListAdapter extends BaseAdapter {
 
     public void setBtDeviceData(List<BluetoothDevice> data) {
         this.mBtDeviceData = data;
+    }
+
+    public void setListener(OnPairButtonListener listener) {
+        this.listener = listener;
     }
 
 
@@ -42,7 +47,7 @@ public class DeviceListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
 
         if(convertView == null) {
@@ -52,11 +57,23 @@ public class DeviceListAdapter extends BaseAdapter {
 
             BluetoothDevice btDevice = mBtDeviceData.get(position);
             holder.deviceTextView.setText(btDevice.getName() + btDevice.getAddress().toString());
+            holder.deviceTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        listener.onPairButtonClick(position);
+                    }
+                }
+            });
         }
         return convertView;
     }
 
     static class ViewHolder {
         TextView deviceTextView;
+    }
+
+    public interface OnPairButtonListener {
+        void onPairButtonClick(int position);
     }
 }

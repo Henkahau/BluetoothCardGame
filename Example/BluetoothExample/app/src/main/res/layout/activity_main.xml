@@ -9,35 +9,33 @@
 
     <LinearLayout
         android:id="@+id/btnLayout"
-        android:layout_above="@id/listLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <Switch
+        <Button
             android:id="@+id/btSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="setBtOn" />
+            android:text="Enable \n Bluetooth"/>
 
         <Button
             android:id="@+id/listBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="listPairedDevices"
-            android:text="List paired devices" />
+            android:text="List \n paired devices" />
 
         <Button
             android:id="@+id/searchBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="findBtDevices"
-            android:text="Find devices"/>
+            android:text="Find \n devices"/>
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_below="@id/btnLayout"
         android:id="@+id/listLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
