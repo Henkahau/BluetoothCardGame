@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "733724824744",
+    "firebase_url": "https://bluetoothcardgame-886af.firebaseio.com",
+    "project_id": "bluetoothcardgame-886af",
+    "storage_bucket": "bluetoothcardgame-886af.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733724824744:android:b13e4aebc4ed6d39",
+        "android_client_info": {
+          "package_name": "one.group.bluetoothcardgame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733724824744-4uf7f70an6dkkk3u2ltpe0db3kjk7aqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "one.group.bluetoothcardgame",
+            "certificate_hash": "b9960996d0228e03549b7c761bf35d0dc9992ea7"
+          }
+        },
+        {
+          "client_id": "733724824744-1dvjq2aflkb94dpqaofus85if46mhc0p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyw2uUC1o-dy4Wh3DF1MNv0Z6yQiqPDJ0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733724824744-1dvjq2aflkb94dpqaofus85if46mhc0p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
