@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BluetoothCardGame</string>
+    <string name="title_activity_bt_list">BtListActivity</string>
+    <string name="title_activity_bt_message">BtMessageActivity</string>
 </resources>
