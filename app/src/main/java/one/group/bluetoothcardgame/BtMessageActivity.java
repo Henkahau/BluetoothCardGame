@@ -39,33 +39,34 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class BtMessageActivity extends AppCompatActivity {
+public class BtMessageActivity extends AppCompatActivity implements FirebaseClient.ImageUrlRequestDone {
 
     String TAG = "BLUETOOTH TESTI";
 
-    ListView messageList;
+    ListView cardListView;
     EditText editMessage;
     BluetoothAdapter mBtAdapter;
     Button sendButton;
     ArrayList<Drawable> imageViews = new ArrayList<>();
     ArrayList<String> messages = new ArrayList<>();
     ArrayAdapter<String> adapter;
-    ArrayAdapter<ImageView> imageAdapter;
+
     String bluetoothMessage = "00";
 
     private boolean accepting = false;
 
     public static final int REQUEST_ENABLE_BT=1;
-    ListView lv_paired_devices;
-    Set<BluetoothDevice> set_pairedDevices;
-    ArrayAdapter adapter_paired_devices;
+
     BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     BluetoothDevice connectedDevice;
     BluetoothSocket socket;
     ConnectedThread mConnectedThread;
+
+    CardListAdapter mCardListAdapter;
 
     private static final UUID MY_UUID= UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -75,7 +76,9 @@ public class BtMessageActivity extends AppCompatActivity {
     public static final int CONNECTED=3;
     public static final int NO_SOCKET_FOUND=4;
 
-    ArrayList<String> urls;
+    ArrayList<String> mUrls = new ArrayList<>();
+
+
     private DatabaseReference mDatabase;
 
     private String[] cards = {
@@ -90,43 +93,14 @@ public class BtMessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_message);
-        urls = new ArrayList<>();
-        FirebaseDatabase fb = FirebaseDatabase.getInstance();
-
-
-        for (String card: cards) {
-            mDatabase = fb.getReference().child("cards").child(card).child("image");
-            mDatabase.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    String imgUrl = dataSnapshot.getValue(String.class);
-                    urls.add(imgUrl);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-        }
-
 
         editMessage = findViewById(R.id.edit_message);
-        messageList = findViewById(R.id.text_message);
+        cardListView = findViewById(R.id.card_list);
         sendButton = findViewById(R.id.send_button);
 
-        adapter = new ArrayAdapter<>(getApplicationContext(),
-                R.layout.list_item_layout, R.id.list_item_label, urls);
+        FirebaseClient fbThread = new FirebaseClient(this);
+        fbThread.start();
 
-
-        messageList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                bluetoothMessage = ((TextView)view.findViewById(R.id.list_item_label)).getText().toString();
-                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
-            }
-        });
-        messageList.setAdapter(adapter);
         connectedDevice = getIntent().getParcelableExtra("btdevice");
 
         if (connectedDevice != null) {
@@ -136,10 +110,7 @@ public class BtMessageActivity extends AppCompatActivity {
         }
         else {
             Toast.makeText(getApplicationContext(), "EI OLLU DEVICEE", Toast.LENGTH_LONG).show();
-            if (socket != null) {
-                startAcceptingConnection();
-            }
-
+            startAcceptingConnection();
         }
 
 
@@ -165,8 +136,8 @@ public class BtMessageActivity extends AppCompatActivity {
                 case MESSAGE_READ:
                     byte[] readbuff =(byte[])msg_type.obj;
                     String receivedMessage = new String(readbuff);
-                    urls.add(receivedMessage);
-                    adapter.notifyDataSetChanged();
+                    mUrls.add(receivedMessage);
+                    mCardListAdapter.notifyDataSetChanged();
 
                     break;
 
@@ -217,6 +188,28 @@ public class BtMessageActivity extends AppCompatActivity {
         AcceptThread acceptThread = new AcceptThread();
         acceptThread.start();
         Toast.makeText(getApplicationContext(),"accepting",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void urlRequestDone(String urli) {
+        Log.e("REQUEST", "DONE");
+
+        mUrls.add(urli);
+        //mCardListAdapter = new CardListAdapter(this);
+        //mCardListAdapter.setCardUrlList(mUrls);
+
+        adapter = new ArrayAdapter<>(this,
+                R.layout.list_item_layout, R.id.list_item_label, mUrls);
+        cardListView.setAdapter(adapter);
+
+        cardListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                bluetoothMessage = ((TextView)view.findViewById(R.id.list_item_label)).getText().toString();
+                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+            }
+        });
+
     }
 
 
