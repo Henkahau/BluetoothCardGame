@@ -5,24 +5,40 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.GlideException;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,9 +50,10 @@ public class BtMessageActivity extends AppCompatActivity {
     EditText editMessage;
     BluetoothAdapter mBtAdapter;
     Button sendButton;
-
+    ArrayList<Drawable> imageViews = new ArrayList<>();
     ArrayList<String> messages = new ArrayList<>();
     ArrayAdapter<String> adapter;
+    ArrayAdapter<ImageView> imageAdapter;
     String bluetoothMessage = "00";
 
     private boolean accepting = false;
@@ -58,20 +75,58 @@ public class BtMessageActivity extends AppCompatActivity {
     public static final int CONNECTED=3;
     public static final int NO_SOCKET_FOUND=4;
 
+    ArrayList<String> urls;
+    private DatabaseReference mDatabase;
+
+    private String[] cards = {
+            "anton1",
+            "jaakko1",
+            "pokka1",
+            "pokka2",
+            "pokka3"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_message);
+        urls = new ArrayList<>();
+        FirebaseDatabase fb = FirebaseDatabase.getInstance();
+
+
+        for (String card: cards) {
+            mDatabase = fb.getReference().child("cards").child(card).child("image");
+            mDatabase.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String imgUrl = dataSnapshot.getValue(String.class);
+                    urls.add(imgUrl);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
 
         editMessage = findViewById(R.id.edit_message);
         messageList = findViewById(R.id.text_message);
         sendButton = findViewById(R.id.send_button);
 
         adapter = new ArrayAdapter<>(getApplicationContext(),
-                R.layout.list_item_layout, R.id.list_item_label, messages);
-        messageList.setAdapter(adapter);
+                R.layout.list_item_layout, R.id.list_item_label, urls);
 
+
+        messageList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                bluetoothMessage = ((TextView)view.findViewById(R.id.list_item_label)).getText().toString();
+                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+            }
+        });
+        messageList.setAdapter(adapter);
         connectedDevice = getIntent().getParcelableExtra("btdevice");
 
         if (connectedDevice != null) {
@@ -110,7 +165,7 @@ public class BtMessageActivity extends AppCompatActivity {
                 case MESSAGE_READ:
                     byte[] readbuff =(byte[])msg_type.obj;
                     String receivedMessage = new String(readbuff);
-                    messages.add(receivedMessage);
+                    urls.add(receivedMessage);
                     adapter.notifyDataSetChanged();
 
                     break;
