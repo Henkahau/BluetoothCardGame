@@ -17,7 +17,7 @@ public class CardListAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
 
-    private ArrayList<String> cardUrlList;
+    private List<String> cardUrlListData;
 
     private OnSendClickListener listener = null;
 
@@ -25,8 +25,8 @@ public class CardListAdapter extends BaseAdapter {
         this.mInflater = LayoutInflater.from(context);
     }
 
-    public void setCardUrlList(ArrayList<String> cardUrlList) {
-        this.cardUrlList = cardUrlList;
+    public void setCardUrlList(List<String> cardUrlList) {
+        this.cardUrlListData = cardUrlList;
     }
 
     public void setListener(OnSendClickListener listener) {
@@ -35,7 +35,7 @@ public class CardListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return (cardUrlList == null) ? 0:cardUrlList.size();
+        return (cardUrlListData == null) ? 0:cardUrlListData.size();
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CardListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     @Override
@@ -55,14 +55,12 @@ public class CardListAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.list_item_layout, null);
             holder = new ViewHolder();
-            //holder.cardImageView = (ImageView)convertView.findViewById(R.id.list_item_label);
+            //holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
             holder.cardTextView = (TextView)convertView.findViewById(R.id.list_item_label);
 
-            String imageUrl = cardUrlList.get(position);
+            String imageUrl = cardUrlListData.get(position);
             holder.cardTextView.setText(imageUrl);
-//            Glide.with(convertView)
-//                    .load(imageUrl)
-//                    .into(holder.cardImageView);
+
 
 //            holder.cardImageView.setOnClickListener(new View.OnClickListener() {
 //                @Override

@@ -16,8 +16,16 @@ public class FirebaseClient extends Thread {
 
     private ArrayList<String> mUrls;
 
+    private String[] cards = {
+            "anton1",
+            "jaakko1",
+            "pokka1",
+            "pokka2",
+            "pokka3"
+    };
+
     public interface ImageUrlRequestDone {
-        void urlRequestDone(String urls);
+        void urlRequestDone(ArrayList<String> urlList);
     }
 
     private ImageUrlRequestDone listener = null;
@@ -35,20 +43,24 @@ public class FirebaseClient extends Thread {
 
     private void getUrlsFromFirebase() {
         FirebaseDatabase fdb = FirebaseDatabase.getInstance();
-        DatabaseReference mDatabase = fdb.getReference().child("cards").child("pokka3").child("image");
         mUrls = new ArrayList<>();
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                String value = dataSnapshot.getValue(String.class);
-                //mUrls.add(value);
-                listener.urlRequestDone(value);
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("ERROR", databaseError.toString());
-            }
-        });
+        for (String card: cards) {
+            DatabaseReference mDatabase = fdb.getReference().child("cards").child(card).child("image");
+
+            mDatabase.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String value = dataSnapshot.getValue(String.class);
+                    mUrls.add(value);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("ERROR", databaseError.toString());
+                }
+            });
+        }
+        listener.urlRequestDone(mUrls);
     }
 }

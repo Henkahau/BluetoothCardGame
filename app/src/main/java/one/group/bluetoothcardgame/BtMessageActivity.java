@@ -79,16 +79,6 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     ArrayList<String> mUrls = new ArrayList<>();
 
 
-    private DatabaseReference mDatabase;
-
-    private String[] cards = {
-            "anton1",
-            "jaakko1",
-            "pokka1",
-            "pokka2",
-            "pokka3"
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,7 +87,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
         editMessage = findViewById(R.id.edit_message);
         cardListView = findViewById(R.id.card_list);
         sendButton = findViewById(R.id.send_button);
-
+        mCardListAdapter = new CardListAdapter(getApplicationContext());
         FirebaseClient fbThread = new FirebaseClient(this);
         fbThread.start();
 
@@ -137,7 +127,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                     byte[] readbuff =(byte[])msg_type.obj;
                     String receivedMessage = new String(readbuff);
                     mUrls.add(receivedMessage);
-                    mCardListAdapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged();
 
                     break;
 
@@ -191,17 +181,15 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     }
 
     @Override
-    public void urlRequestDone(String urli) {
-        Log.e("REQUEST", "DONE");
+    public void urlRequestDone(ArrayList<String> urli) {
 
-        mUrls.add(urli);
-        //mCardListAdapter = new CardListAdapter(this);
-        //mCardListAdapter.setCardUrlList(mUrls);
+        mUrls = urli;
 
-        adapter = new ArrayAdapter<>(this,
+//        mCardListAdapter.setCardUrlList(mUrls);
+//        cardListView.setAdapter(mCardListAdapter);
+        adapter = new ArrayAdapter<>(getApplicationContext(),
                 R.layout.list_item_layout, R.id.list_item_label, mUrls);
         cardListView.setAdapter(adapter);
-
         cardListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -209,7 +197,6 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                 handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
             }
         });
-
     }
 
 
