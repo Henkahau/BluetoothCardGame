@@ -53,32 +53,37 @@ public class CardListAdapter extends BaseAdapter {
         ViewHolder holder;
 
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.list_item_layout, null);
+            convertView = mInflater.inflate(R.layout.image_item_layout, null);
             holder = new ViewHolder();
-            //holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
-            holder.cardTextView = (TextView)convertView.findViewById(R.id.list_item_label);
+            holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
+            //holder.cardTextView = (TextView)convertView.findViewById(R.id.list_item_label);
 
-            String imageUrl = cardUrlListData.get(position);
-            holder.cardTextView.setText(imageUrl);
+            final String imageUrl = cardUrlListData.get(position);
+            //holder.cardTextView.setText(imageUrl);
+            Glide.with(getView(position, convertView, parent))
+                    .load(imageUrl)
+                    .into(holder.cardImageView);
 
-
-//            holder.cardImageView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    if (listener != null) {
-//                        listener.imageClickedToSend(position);
-//                    }
-//                }
-//            });
+            holder.cardImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        listener.imageClickedToSend(position);
+                    }
+                }
+            });
 
 
         }
-        return null;
+        return convertView;
+    }
+
+    public String getImageUrl(int position) {
+        return cardUrlListData.get(position);
     }
 
     static class ViewHolder {
-        //ImageView cardImageView;
-        TextView cardTextView;
+        ImageView cardImageView;
     }
 
     public interface OnSendClickListener {

@@ -84,9 +84,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_message);
 
-        editMessage = findViewById(R.id.edit_message);
         cardListView = findViewById(R.id.card_list);
-        sendButton = findViewById(R.id.send_button);
         mCardListAdapter = new CardListAdapter(getApplicationContext());
         FirebaseClient fbThread = new FirebaseClient(this);
         fbThread.start();
@@ -103,14 +101,6 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
             startAcceptingConnection();
         }
 
-
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bluetoothMessage = editMessage.getText().toString();
-                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
-            }
-        });
 
     }
 
@@ -184,19 +174,27 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     public void urlRequestDone(ArrayList<String> urli) {
 
         mUrls = urli;
-
-//        mCardListAdapter.setCardUrlList(mUrls);
-//        cardListView.setAdapter(mCardListAdapter);
-        adapter = new ArrayAdapter<>(getApplicationContext(),
-                R.layout.list_item_layout, R.id.list_item_label, mUrls);
-        cardListView.setAdapter(adapter);
-        cardListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        BtMessageActivity.this.runOnUiThread(new Runnable() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                bluetoothMessage = ((TextView)view.findViewById(R.id.list_item_label)).getText().toString();
-                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+            public void run() {
+                updateUi();
             }
         });
+    }
+
+    private void updateUi() {
+        mCardListAdapter.setCardUrlList(mUrls);
+        cardListView.setAdapter(mCardListAdapter);
+        mCardListAdapter.setListener(new CardListAdapter.OnSendClickListener() {
+            @Override
+            public void imageClickedToSend(int imagePosition) {
+                bluetoothMessage = mCardListAdapter.getImageUrl(imagePosition);
+                Log.e("BTMESSAGE", bluetoothMessage +" " + "Position: " + imagePosition);
+                mUrls.remove(mUrls.get(imagePosition));
+                mCardListAdapter.notifyDataSetChanged();
+            }
+        });
+
     }
 
 
