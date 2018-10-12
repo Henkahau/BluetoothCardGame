@@ -14,18 +14,18 @@ import java.util.List;
 
 public class FirebaseClient extends Thread {
 
-    private ArrayList<String> mUrls;
+    private List mUrls;
 
     private String[] cards = {
             "anton1",
-            "jaakko1",
+            "jakko1",
             "pokka1",
             "pokka2",
             "pokka3"
     };
 
     public interface ImageUrlRequestDone {
-        void urlRequestDone(ArrayList<String> urlList);
+        void urlRequestDone(List urlList);
     }
 
     private ImageUrlRequestDone listener = null;
@@ -41,7 +41,7 @@ public class FirebaseClient extends Thread {
         }
     }
 
-    private void getUrlsFromFirebase() {
+    public void getUrlsFromFirebase() {
         FirebaseDatabase fdb = FirebaseDatabase.getInstance();
         mUrls = new ArrayList<>();
 

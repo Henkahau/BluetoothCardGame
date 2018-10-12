@@ -1,6 +1,8 @@
 package one.group.bluetoothcardgame;
 
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +11,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.annotation.GlideExtension;
+import com.bumptech.glide.annotation.GlideOption;
+import com.bumptech.glide.request.RequestOptions;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.view.SimpleDraweeView;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
 
 public class CardListAdapter extends BaseAdapter {
 
@@ -49,18 +59,18 @@ public class CardListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
+    public View getView(final int position, View convertView, final ViewGroup parent) {
+        final ViewHolder holder;
 
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.image_item_layout, null);
             holder = new ViewHolder();
             holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
-            //holder.cardTextView = (TextView)convertView.findViewById(R.id.list_item_label);
 
-            final String imageUrl = cardUrlListData.get(position);
-            //holder.cardTextView.setText(imageUrl);
+            String imageUrl = cardUrlListData.get(position);
+
             Glide.with(getView(position, convertView, parent))
+                    .asDrawable()
                     .load(imageUrl)
                     .into(holder.cardImageView);
 
@@ -80,6 +90,19 @@ public class CardListAdapter extends BaseAdapter {
 
     public String getImageUrl(int position) {
         return cardUrlListData.get(position);
+    }
+
+    public void getCardListContent() {
+       for (String url: cardUrlListData) {
+           Log.e("CARDLISTURLS", url+ " " + cardUrlListData.indexOf(url));
+       }
+    }
+
+    public void updateCardList(List<String> newCardList) {
+//        cardUrlListData.clear();
+//        cardUrlListData.addAll(newCardList);
+        cardUrlListData = newCardList;
+        this.notifyDataSetChanged();
     }
 
     static class ViewHolder {

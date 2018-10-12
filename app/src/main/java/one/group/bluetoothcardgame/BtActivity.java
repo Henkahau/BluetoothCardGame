@@ -40,6 +40,7 @@ public class BtActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt);
 
+
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("Scanning for nearby Bluetooth devices");
         mProgressDialog.setCancelable(false);
@@ -180,7 +181,7 @@ public class BtActivity extends AppCompatActivity {
                 BluetoothDevice device = (BluetoothDevice)intent.
                         getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                if(!nearbyDevices.contains(device)) {
+                if(!nearbyDevices.contains(device) && device.getName() != null) {
                     nearbyDevices.add(device);
                 }
             }

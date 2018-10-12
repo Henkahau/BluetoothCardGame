@@ -24,14 +24,6 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity {
 
 
-    private String[] cardIDs = {
-        "id1",
-        "id2"
-    };
-
-    ArrayList<String> cards;
-
-    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,26 +31,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        final ImageView tv = findViewById(R.id.hello);
-        FirebaseDatabase fdb = FirebaseDatabase.getInstance();
-        mDatabase = fdb.getReference().child("cards").child("pokka3").child("image");
-        mDatabase.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                final String value = dataSnapshot.getValue(String.class);
-                Glide.with(MainActivity.this)
-                        .load(value)
-                        .into(tv);
 
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                 Log.e("ERROR", databaseError.toString());
-            }
-        });
-
-        tv.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, BtActivity.class);

@@ -28,20 +28,27 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.GlideException;
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.spec.ECField;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import static java.lang.Thread.sleep;
 
 public class BtMessageActivity extends AppCompatActivity implements FirebaseClient.ImageUrlRequestDone {
 
@@ -51,11 +58,10 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     EditText editMessage;
     BluetoothAdapter mBtAdapter;
     Button sendButton;
-    ArrayList<Drawable> imageViews = new ArrayList<>();
-    ArrayList<String> messages = new ArrayList<>();
+    AcceptThread acceptThread;
     ArrayAdapter<String> adapter;
 
-    String bluetoothMessage = "00";
+    String bluetoothMessage = null;
 
     private boolean accepting = false;
 
@@ -76,18 +82,31 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     public static final int CONNECTED=3;
     public static final int NO_SOCKET_FOUND=4;
 
-    ArrayList<String> mUrls = new ArrayList<>();
-
+    List<String> mCardUrls = new ArrayList<>();
+    FirebaseClient fbThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_message);
-
         cardListView = findViewById(R.id.card_list);
-        mCardListAdapter = new CardListAdapter(getApplicationContext());
-        FirebaseClient fbThread = new FirebaseClient(this);
+
+        mCardListAdapter = new CardListAdapter(this);
+        mCardListAdapter.setCardUrlList(mCardUrls);
+        fbThread = new FirebaseClient(this);
         fbThread.start();
+
+
+        mCardListAdapter.setListener(new CardListAdapter.OnSendClickListener() {
+            @Override
+            public void imageClickedToSend(int imagePosition) {
+                bluetoothMessage = mCardListAdapter.getImageUrl(imagePosition);
+                mCardUrls.remove(imagePosition);
+                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+                mCardListAdapter.notifyDataSetChanged();
+                cardListView.setAdapter(mCardListAdapter);
+            }
+        });
 
         connectedDevice = getIntent().getParcelableExtra("btdevice");
 
@@ -104,6 +123,14 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
     }
 
+    static byte[] trim(byte[] bytes) {
+        int i = bytes.length - 1;
+        while (i >= 0 && bytes[i] == 0) {
+            --i;
+        }
+        return Arrays.copyOf(bytes, i + 1 );
+    }
+
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -115,15 +142,37 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
             switch (msg_type.what) {
                 case MESSAGE_READ:
                     byte[] readbuff =(byte[])msg_type.obj;
-                    String receivedMessage = new String(readbuff);
-                    mUrls.add(receivedMessage);
-                    adapter.notifyDataSetChanged();
+                    byte[] trimmed = trim(readbuff);
+                    final String receivedMessage = new String(trimmed);
+                    mCardUrls.add(receivedMessage);
+
+                    BtMessageActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (String url : mCardUrls) {
+                                Log.e("VASTAANOTETTUJA", url);
+                            }
+                            Toast.makeText(getApplicationContext(),
+                                    receivedMessage, Toast.LENGTH_LONG).show();
+                            mCardListAdapter.notifyDataSetChanged();
+                            cardListView.setAdapter(mCardListAdapter);
+                        }
+                    });
+
 
                     break;
 
                 case MESSAGE_WRITE:
                     if (msg_type.obj != null) {
-                        mConnectedThread.write(bluetoothMessage.getBytes());
+                        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+                        while (bOut.size() != bluetoothMessage.length()) {
+                            try {
+                                bOut.write(bluetoothMessage.getBytes());
+                            }catch (Exception e) {}
+
+                        }
+                        byte b [] = bOut.toByteArray();
+                        mConnectedThread.write(b);
                     }
 
                 case CONNECTED:
@@ -148,32 +197,32 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
         this.socket = socket;
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
-        bluetoothMessage = "Hei serveri";
-        handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+        //bluetoothMessage = "Hei serveri";
+        //handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
     }
 
     private void connectedToClient(BluetoothSocket socket) {
         this.socket = socket;
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
-        bluetoothMessage = "Hei klientti";
-        handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+        //bluetoothMessage = "Hei klientti";
+        //handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
     }
-
 
     public void startAcceptingConnection()
     {
         //call this on button click as suited by you
 
-        AcceptThread acceptThread = new AcceptThread();
+        acceptThread = new AcceptThread();
         acceptThread.start();
         Toast.makeText(getApplicationContext(),"accepting",Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void urlRequestDone(ArrayList<String> urli) {
+    public void urlRequestDone(List urli) {
 
-        mUrls = urli;
+        mCardUrls = urli;
+
         BtMessageActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -183,18 +232,9 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     }
 
     private void updateUi() {
-        mCardListAdapter.setCardUrlList(mUrls);
-        cardListView.setAdapter(mCardListAdapter);
-        mCardListAdapter.setListener(new CardListAdapter.OnSendClickListener() {
-            @Override
-            public void imageClickedToSend(int imagePosition) {
-                bluetoothMessage = mCardListAdapter.getImageUrl(imagePosition);
-                Log.e("BTMESSAGE", bluetoothMessage +" " + "Position: " + imagePosition);
-                mUrls.remove(mUrls.get(imagePosition));
-                mCardListAdapter.notifyDataSetChanged();
-            }
-        });
 
+        mCardListAdapter.notifyDataSetChanged();
+        cardListView.setAdapter(mCardListAdapter);
     }
 
 
@@ -229,6 +269,13 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                     connectedToServer(socket);
                 }
             }
+        }
+
+        public void cancel() {
+            try {
+                interrupt();
+            }catch (Exception e) {}
+
         }
     }
 

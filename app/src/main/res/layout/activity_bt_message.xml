@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".BtMessageActivity">
 
-
     <ListView
         android:id="@+id/card_list"
         android:layout_width="match_parent"
