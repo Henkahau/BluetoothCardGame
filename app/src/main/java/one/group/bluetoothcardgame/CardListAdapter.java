@@ -13,7 +13,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CardListAdapter extends BaseAdapter {
+public class  CardListAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
 

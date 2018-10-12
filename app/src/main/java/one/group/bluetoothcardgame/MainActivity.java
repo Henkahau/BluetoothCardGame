@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
     private String[] cardIDs = {
         "id1",
         "id2"
@@ -48,7 +50,31 @@ public class MainActivity extends AppCompatActivity {
 
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        Log.d("testi", "User" + currentUser.getUid());
+
+        if (currentUser != null) {
+            Log.d("testi", "User" + currentUser.getUid());
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            mDatabase = database.getReference();
+
+            mDatabase.child("user").child(currentUser.getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    for(DataSnapshot uniqueKeySnapshot : dataSnapshot.getChildren()){
+                        //Loop 1 to go through all the child nodes of users
+
+                        Log.d("kortit", "Kortti" + uniqueKeySnapshot);
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
 
 
         final ImageView tv = findViewById(R.id.hello);
