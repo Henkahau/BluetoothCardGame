@@ -55,17 +55,10 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     String TAG = "BLUETOOTH TESTI";
 
     ListView cardListView;
-    EditText editMessage;
-    BluetoothAdapter mBtAdapter;
-    Button sendButton;
     AcceptThread acceptThread;
-    ArrayAdapter<String> adapter;
 
     String bluetoothMessage = null;
 
-    private boolean accepting = false;
-
-    public static final int REQUEST_ENABLE_BT=1;
 
     BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     BluetoothDevice connectedDevice;
@@ -93,20 +86,19 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
         mCardListAdapter = new CardListAdapter(this);
         mCardListAdapter.setCardUrlList(mCardUrls);
-        fbThread = new FirebaseClient(this);
-        fbThread.start();
-
-
+        cardListView.setAdapter(mCardListAdapter);
         mCardListAdapter.setListener(new CardListAdapter.OnSendClickListener() {
             @Override
             public void imageClickedToSend(int imagePosition) {
                 bluetoothMessage = mCardListAdapter.getImageUrl(imagePosition);
                 mCardUrls.remove(imagePosition);
                 handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
-                mCardListAdapter.notifyDataSetChanged();
-                cardListView.setAdapter(mCardListAdapter);
+                updateUi();
             }
         });
+
+        fbThread = new FirebaseClient(this);
+        fbThread.start();
 
         connectedDevice = getIntent().getParcelableExtra("btdevice");
 
@@ -121,7 +113,10 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
         }
 
 
+
+
     }
+
 
     static byte[] trim(byte[] bytes) {
         int i = bytes.length - 1;
@@ -154,8 +149,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                             }
                             Toast.makeText(getApplicationContext(),
                                     receivedMessage, Toast.LENGTH_LONG).show();
-                            mCardListAdapter.notifyDataSetChanged();
-                            cardListView.setAdapter(mCardListAdapter);
+                            updateUi();
                         }
                     });
 
@@ -219,22 +213,22 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     }
 
     @Override
-    public void urlRequestDone(List urli) {
-
-        mCardUrls = urli;
+    public void urlRequestDone(String urli) {
+        mCardUrls.add(urli);
 
         BtMessageActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                for (String u : mCardUrls) {
+                    Log.e("VITTUU", u);
+                }
                 updateUi();
             }
         });
     }
 
     private void updateUi() {
-
         mCardListAdapter.notifyDataSetChanged();
-        cardListView.setAdapter(mCardListAdapter);
     }
 
 

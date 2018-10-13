@@ -1,26 +1,15 @@
 package one.group.bluetoothcardgame;
 
 import android.content.Context;
-import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.annotation.GlideExtension;
-import com.bumptech.glide.annotation.GlideOption;
-import com.bumptech.glide.request.RequestOptions;
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.drawee.view.SimpleDraweeView;
 
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 public class CardListAdapter extends BaseAdapter {
@@ -64,27 +53,26 @@ public class CardListAdapter extends BaseAdapter {
 
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.image_item_layout, null);
-            holder = new ViewHolder();
-            holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
-
-            String imageUrl = cardUrlListData.get(position);
-
-            Glide.with(getView(position, convertView, parent))
-                    .asDrawable()
-                    .load(imageUrl)
-                    .into(holder.cardImageView);
-
-            holder.cardImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (listener != null) {
-                        listener.imageClickedToSend(position);
-                    }
-                }
-            });
-
 
         }
+
+        holder = new ViewHolder();
+        holder.cardImageView = (ImageView)convertView.findViewById(R.id.image_label);
+
+        String imageUrl = cardUrlListData.get(position);
+        Glide.with(convertView)
+                .load(imageUrl)
+                .into(holder.cardImageView);
+
+        holder.cardImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.imageClickedToSend(position);
+                }
+            }
+        });
+
         return convertView;
     }
 
@@ -92,18 +80,6 @@ public class CardListAdapter extends BaseAdapter {
         return cardUrlListData.get(position);
     }
 
-    public void getCardListContent() {
-       for (String url: cardUrlListData) {
-           Log.e("CARDLISTURLS", url+ " " + cardUrlListData.indexOf(url));
-       }
-    }
-
-    public void updateCardList(List<String> newCardList) {
-//        cardUrlListData.clear();
-//        cardUrlListData.addAll(newCardList);
-        cardUrlListData = newCardList;
-        this.notifyDataSetChanged();
-    }
 
     static class ViewHolder {
         ImageView cardImageView;

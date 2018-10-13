@@ -25,7 +25,7 @@ public class FirebaseClient extends Thread {
     };
 
     public interface ImageUrlRequestDone {
-        void urlRequestDone(List urlList);
+        void urlRequestDone(String urlList);
     }
 
     private ImageUrlRequestDone listener = null;
@@ -38,6 +38,7 @@ public class FirebaseClient extends Thread {
     public void run() {
         if (listener != null) {
             getUrlsFromFirebase();
+
         }
     }
 
@@ -52,7 +53,7 @@ public class FirebaseClient extends Thread {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     String value = dataSnapshot.getValue(String.class);
-                    mUrls.add(value);
+                    listener.urlRequestDone(value);
                 }
 
                 @Override
@@ -61,6 +62,6 @@ public class FirebaseClient extends Thread {
                 }
             });
         }
-        listener.urlRequestDone(mUrls);
+
     }
 }
