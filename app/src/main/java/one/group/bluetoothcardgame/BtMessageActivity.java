@@ -1,10 +1,12 @@
 package one.group.bluetoothcardgame;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.Bundle;
@@ -55,6 +57,8 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     String TAG = "BLUETOOTH TESTI";
 
     ListView cardListView;
+    ListView friendsListView;
+
     AcceptThread acceptThread;
 
     String bluetoothMessage = null;
@@ -66,6 +70,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     ConnectedThread mConnectedThread;
 
     CardListAdapter mCardListAdapter;
+    CardListAdapter mFriendCardListAdapter;
 
     private static final UUID MY_UUID= UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -75,14 +80,25 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
     public static final int CONNECTED=3;
     public static final int NO_SOCKET_FOUND=4;
 
-    List<String> mCardUrls = new ArrayList<>();
+    ArrayList<String> mCardUrls = new ArrayList<>();
+    ArrayList<String> friendsCards = new ArrayList<>();
     FirebaseClient fbThread;
+    private boolean tradeSessionInitialized = false;
+    private boolean cardsCounted = false;
+    private ProgressDialog mProgressDialog;
+
+    int fCardCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_message);
-        cardListView = findViewById(R.id.card_list);
+
+        fbThread = new FirebaseClient(this);
+        fbThread.start();
+
+        cardListView = findViewById(R.id.mycard_list);
+        friendsListView = findViewById(R.id.friend_card_list);
 
         mCardListAdapter = new CardListAdapter(this);
         mCardListAdapter.setCardUrlList(mCardUrls);
@@ -91,14 +107,18 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
             @Override
             public void imageClickedToSend(int imagePosition) {
                 bluetoothMessage = mCardListAdapter.getImageUrl(imagePosition);
+                String card = mCardUrls.get(imagePosition);
+                friendsCards.add(card);
                 mCardUrls.remove(imagePosition);
-                handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+                sendMessage(card);
                 updateUi();
             }
         });
 
-        fbThread = new FirebaseClient(this);
-        fbThread.start();
+        mFriendCardListAdapter = new CardListAdapter(this);
+        mFriendCardListAdapter.setCardUrlList(friendsCards);
+        friendsListView.setAdapter(mFriendCardListAdapter);
+
 
         connectedDevice = getIntent().getParcelableExtra("btdevice");
 
@@ -111,9 +131,6 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
             Toast.makeText(getApplicationContext(), "EI OLLU DEVICEE", Toast.LENGTH_LONG).show();
             startAcceptingConnection();
         }
-
-
-
 
     }
 
@@ -139,34 +156,26 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                     byte[] readbuff =(byte[])msg_type.obj;
                     byte[] trimmed = trim(readbuff);
                     final String receivedMessage = new String(trimmed);
-                    mCardUrls.add(receivedMessage);
 
-                    BtMessageActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (String url : mCardUrls) {
-                                Log.e("VASTAANOTETTUJA", url);
-                            }
-                            Toast.makeText(getApplicationContext(),
-                                    receivedMessage, Toast.LENGTH_LONG).show();
-                            updateUi();
-                        }
-                    });
+                    if (!cardsCounted) {
+                        fCardCount = Integer.parseInt(receivedMessage);
+                        cardsCounted = true;
+                    } else if (friendsCards.size() <= fCardCount - 1) {
 
+                        friendsCards.add(receivedMessage);
+                        updateUi();
+                    } else {
+                        mCardUrls.add(receivedMessage);
+                        friendsCards.remove(receivedMessage);
+                        updateUi();
 
+                    }
+                    
                     break;
 
                 case MESSAGE_WRITE:
                     if (msg_type.obj != null) {
-                        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-                        while (bOut.size() != bluetoothMessage.length()) {
-                            try {
-                                bOut.write(bluetoothMessage.getBytes());
-                            }catch (Exception e) {}
-
-                        }
-                        byte b [] = bOut.toByteArray();
-                        mConnectedThread.write(b);
+                        mConnectedThread.write(bluetoothMessage.getBytes());
                     }
 
                 case CONNECTED:
@@ -187,25 +196,60 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
     };
 
-    private void connectedToServer(BluetoothSocket socket) {
+    private void connected(final BluetoothSocket socket) {
         this.socket = socket;
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
-        //bluetoothMessage = "Hei serveri";
-        //handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+
+        // send my cards to friend
+        final int count = mCardUrls.size();
+        final String countStr = Integer.toString(count);
+        Thread initThread = new Thread() {
+            @Override
+            public void run () {
+                try {
+                    sleep(1000);
+                    sendMessage(countStr);
+                }catch (Exception e){}
+
+                for (String u : mCardUrls) {
+                    try {
+                        sleep(1000);
+                        sendMessage(u);
+                    } catch (Exception e){}
+                }
+
+            }
+        };
+
+        initThread.start();
+
+
     }
 
-    private void connectedToClient(BluetoothSocket socket) {
-        this.socket = socket;
-        mConnectedThread = new ConnectedThread(socket);
-        mConnectedThread.start();
-        //bluetoothMessage = "Hei klientti";
-        //handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
+    private void sendMessage(String message) {
+        bluetoothMessage = message;
+        handler.obtainMessage(MESSAGE_WRITE, socket).sendToTarget();
     }
+
 
     public void startAcceptingConnection()
     {
         //call this on button click as suited by you
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage("Waiting for connection request");
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mProgressDialog.dismiss();
+                        finish();
+                        acceptThread.interrupt();
+                    }
+                });
+
+        mProgressDialog.show();
 
         acceptThread = new AcceptThread();
         acceptThread.start();
@@ -219,9 +263,6 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
         BtMessageActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                for (String u : mCardUrls) {
-                    Log.e("VITTUU", u);
-                }
                 updateUi();
             }
         });
@@ -229,6 +270,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
     private void updateUi() {
         mCardListAdapter.notifyDataSetChanged();
+        mFriendCardListAdapter.notifyDataSetChanged();
     }
 
 
@@ -260,7 +302,8 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
                 {
                     // Do work to manage the connection (in a separate thread)
                     handler.obtainMessage(CONNECTED).sendToTarget();
-                    connectedToServer(socket);
+                    connected(socket);
+                    mProgressDialog.dismiss();
                 }
             }
         }
@@ -314,7 +357,7 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
             //bluetoothMessage = "huu";
             //handler.obtainMessage(MESSAGE_WRITE, mmSocket).sendToTarget();
 
-            connectedToClient(mmSocket);
+            connected(mmSocket);
         }
 
         /** Will cancel an in-progress connection, and close the socket */

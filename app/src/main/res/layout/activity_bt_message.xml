@@ -6,11 +6,57 @@
     android:layout_height="match_parent"
     tools:context=".BtMessageActivity">
 
+
+    <TextView
+        android:id="@+id/my_card_txt"
+        android:layout_width="0dp"
+        android:paddingTop="20dp"
+        android:textAlignment="center"
+        android:layout_height="wrap_content"
+        android:text="My cards"
+        android:textSize="20sp"
+        app:layout_constraintRight_toLeftOf="@id/f_card_txt"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/mycard_list"/>
+
+    <TextView
+        android:id="@+id/f_card_txt"
+        android:layout_width="0dp"
+        android:paddingTop="20dp"
+        android:textAlignment="center"
+        android:layout_height="wrap_content"
+        android:text="Friends cards"
+        app:layout_constraintLeft_toRightOf="@id/my_card_txt"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/friend_card_list"
+        android:textSize="20sp"/>
+
+
     <ListView
-        android:id="@+id/card_list"
-        android:layout_width="match_parent"
+        android:id="@+id/mycard_list"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintVertical_weight="8"
+        app:layout_constraintStart_toStartOf="@id/my_card_txt"
+        app:layout_constraintEnd_toEndOf="@id/my_card_txt"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/friend_card_list"
+        app:layout_constraintTop_toBottomOf="@id/my_card_txt"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <ListView
+        android:id="@+id/friend_card_list"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintVertical_weight="8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/f_card_txt"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/mycard_list"
+        app:layout_constraintStart_toStartOf="@id/f_card_txt"
+        app:layout_constraintEnd_toEndOf="@id/f_card_txt"/>
 
 
 
