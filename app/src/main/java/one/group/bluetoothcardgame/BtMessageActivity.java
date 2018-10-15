@@ -15,9 +15,11 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -96,6 +98,11 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
         fbThread = new FirebaseClient(this);
         fbThread.start();
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("Trade Cards");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         cardListView = findViewById(R.id.mycard_list);
         friendsListView = findViewById(R.id.friend_card_list);
@@ -431,4 +438,10 @@ public class BtMessageActivity extends AppCompatActivity implements FirebaseClie
 
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home)
+            finish();
+        return super.onOptionsItemSelected(item);
+    }
 }

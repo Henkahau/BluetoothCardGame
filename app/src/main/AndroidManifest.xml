@@ -28,8 +28,10 @@
         <activity
             android:name=".BtMessageActivity"
             android:label="@string/title_activity_bt_message"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".BtActivity"></activity>
+            android:theme="@style/AppTheme"
+            android:parentActivityName=".BtActivity"/>
+        <activity android:name=".BtActivity" />
+        <activity android:name=".GalleryActivity"></activity>
     </application>
 
 </manifest>

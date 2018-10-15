@@ -30,14 +30,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+          findViewById(R.id.btnBluetooth).setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  Intent intent = new Intent(MainActivity.this, BtActivity.class);
+                  startActivity(intent);
+              }
+          });
 
+          findViewById(R.id.btnGallery).setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  Intent intent = new Intent(MainActivity.this, GalleryActivity.class);
+                  startActivity(intent);
+              }
+          });
 
-        findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
+       /* findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, BtActivity.class);
                 startActivity(intent);
             }
-        });
+        });*/
     }
 }
