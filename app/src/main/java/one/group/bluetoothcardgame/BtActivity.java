@@ -82,6 +82,21 @@ public class BtActivity extends AppCompatActivity {
                 }
             }
         });
+        pairedBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listPairedDevices(v);
+            }
+        });
+
+
+
+        discoverBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                findBtDevices(v);
+            }
+        });
 
         listenButton = findViewById(R.id.messagingButton);
         listenButton.setOnClickListener(new View.OnClickListener() {
